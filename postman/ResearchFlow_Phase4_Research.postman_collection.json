@@ -1,0 +1,135 @@
+{
+  "info": {
+    "_postman_id": "researchflow-phase4-research",
+    "name": "ResearchFlow Backend — Phase 4 Research & Sources",
+    "description": "Phase 4 tools + sources.\n\nApply migrations/004_create_sources.sql first.\nbaseUrl=http://localhost:8000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "runId", "value": "" },
+    { "key": "sourceId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Research Tools",
+      "item": [
+        {
+          "name": "POST Search",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"AI in healthcare NIH\",\n  \"max_results\": 5\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/research/search"
+          }
+        },
+        {
+          "name": "POST Fetch",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://www.nih.gov/news-events\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/research/fetch"
+          }
+        },
+        {
+          "name": "POST Extract",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://www.nih.gov/news-events\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/research/extract"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sources",
+      "item": [
+        {
+          "name": "POST Create Run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const b = pm.response.json();",
+                  "if (b.data && b.data.id) pm.collectionVariables.set('runId', b.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Phase 4 source pipeline test topic\",\n  \"depth\": \"standard\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs"
+          }
+        },
+        {
+          "name": "POST Add Source",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const b = pm.response.json();",
+                  "if (b.data && b.data.source && b.data.source.id) {",
+                  "  pm.collectionVariables.set('sourceId', b.data.source.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://www.nih.gov/news-events\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sources"
+          }
+        },
+        {
+          "name": "GET List Sources",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sources"
+          }
+        },
+        {
+          "name": "GET Source by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sources/{{sourceId}}"
+          }
+        },
+        {
+          "name": "DELETE Source",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sources/{{sourceId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

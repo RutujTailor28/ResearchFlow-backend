@@ -1,0 +1,141 @@
+{
+  "info": {
+    "_postman_id": "researchflow-phase7-reports",
+    "name": "ResearchFlow Backend — Phase 7 Writer & Reports",
+    "description": "Phase 7: Writer Agent + report generation.\n\nApply migrations/007_create_reports_and_writer_events.sql first.\nPrereq: run with sections + findings (research completed/partial).\nbaseUrl=http://localhost:8000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "runId", "value": "" },
+    { "key": "sectionId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "POST Create Run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('runId', b.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"AI diagnostics in healthcare\",\n  \"depth\": \"quick\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs"
+          }
+        },
+        {
+          "name": "POST Generate Plan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/generate"
+          }
+        },
+        {
+          "name": "POST Approve Plan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/approve"
+          }
+        },
+        {
+          "name": "GET Sections",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const b = pm.response.json();",
+                  "if (b.data && b.data.items && b.data.items.length) {",
+                  "  pm.collectionVariables.set('sectionId', b.data.items[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections"
+          }
+        },
+        {
+          "name": "POST Start Research",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/start"
+          }
+        },
+        {
+          "name": "GET Research Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "POST Generate Full Report",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/report/generate"
+          }
+        },
+        {
+          "name": "GET Report",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/report"
+          }
+        },
+        {
+          "name": "PUT Update Report",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"markdown\": \"# Updated Report\\n\\nManual edit for testing.\\n\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/report"
+          }
+        },
+        {
+          "name": "POST Generate Section",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections/{{sectionId}}/generate"
+          }
+        },
+        {
+          "name": "POST Regenerate Section",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instructions\": \"Make this section more technical\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections/{{sectionId}}/regenerate"
+          }
+        }
+      ]
+    }
+  ]
+}

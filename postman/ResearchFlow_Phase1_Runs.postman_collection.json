@@ -1,0 +1,187 @@
+{
+  "info": {
+    "_postman_id": "researchflow-phase1-runs",
+    "name": "ResearchFlow Backend — Phase 1 Runs",
+    "description": "Phase 1 Core Run Management APIs.\n\nBase URL: http://localhost:8000\n\nBefore create/list/get work, apply migrations/001_create_runs.sql in Supabase SQL Editor (health should show runs_table: true).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health",
+      "item": [
+        {
+          "name": "GET Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/health",
+            "description": "Check backend + Supabase status. Expect runs_table: true before testing runs."
+          }
+        },
+        {
+          "name": "GET Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Runs",
+      "item": [
+        {
+          "name": "POST Create Run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) {",
+                  "    pm.collectionVariables.set('runId', body.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Future of Artificial Intelligence in Healthcare\",\n  \"depth\": \"standard\",\n  \"audience\": \"technical\",\n  \"tone\": \"professional\",\n  \"target_length\": 3000,\n  \"source_types\": [\n    \"official\",\n    \"research\",\n    \"news\"\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs",
+            "description": "Creates a run with status plan_pending. Saves runId into collection variable automatically."
+          }
+        },
+        {
+          "name": "GET List Runs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/runs?limit=50&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "runs"],
+              "query": [
+                { "key": "limit", "value": "50" },
+                { "key": "offset", "value": "0" },
+                { "key": "status", "value": "plan_pending", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET List Runs (filter status)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs?status=cancelled&limit=20&offset=0"
+          }
+        },
+        {
+          "name": "GET Run by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}"
+          }
+        },
+        {
+          "name": "GET Run Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/status"
+          }
+        },
+        {
+          "name": "POST Cancel Run",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/cancel"
+          }
+        },
+        {
+          "name": "DELETE Run",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Validation / Errors",
+      "item": [
+        {
+          "name": "POST Create Run — topic too short (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"ab\",\n  \"depth\": \"standard\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs"
+          }
+        },
+        {
+          "name": "POST Create Run — invalid depth (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Valid research topic here\",\n  \"depth\": \"ultra\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs"
+          }
+        },
+        {
+          "name": "GET Run — invalid UUID (422)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/not-a-uuid"
+          }
+        },
+        {
+          "name": "GET Run — missing (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/00000000-0000-0000-0000-000000000001"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+{
+  "info": {
+    "_postman_id": "researchflow-phase10-reliability",
+    "name": "ResearchFlow Backend — Phase 10 Reliability & QA",
+    "description": "Phase 10: cancellation, cost ceiling, timeouts, status flow, and full workflow smoke.\n\nApply migrations/009_reliability_cancel_cost.sql first.\nbaseUrl=http://localhost:8000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "runId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 Health & Reliability Config",
+      "item": [
+        {
+          "name": "GET Health",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Full Workflow",
+      "item": [
+        {
+          "name": "POST Create Run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('runId', b.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Phase 10 reliability workflow\",\n  \"depth\": \"quick\",\n  \"cost_limit_usd\": 1.0\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs"
+          }
+        },
+        {
+          "name": "POST Generate Plan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/generate"
+          }
+        },
+        {
+          "name": "PUT Edit Plan (optional)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sections\": [\n    {\n      \"title\": \"Overview\",\n      \"description\": \"High-level overview\",\n      \"sub_questions\": [\"What is the current state?\"],\n      \"order_index\": 1\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan"
+          }
+        },
+        {
+          "name": "POST Approve Plan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/approve"
+          }
+        },
+        {
+          "name": "POST Start Research",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/start"
+          }
+        },
+        {
+          "name": "GET Research Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/status"
+          }
+        },
+        {
+          "name": "GET Events (live trail)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/events?limit=50"
+          }
+        },
+        {
+          "name": "POST Generate Report",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/report/generate"
+          }
+        },
+        {
+          "name": "POST Verify Report",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/verify"
+          }
+        },
+        {
+          "name": "GET Usage",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/usage"
+          }
+        },
+        {
+          "name": "GET Cost",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/cost"
+          }
+        },
+        {
+          "name": "GET Export MD",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/export?format=md"
+          }
+        },
+        {
+          "name": "GET History + Timeline",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/history"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Cancellation Smoke",
+      "item": [
+        {
+          "name": "POST Create Run (cancel test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('runId', b.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Cancel during research\",\n  \"depth\": \"quick\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs"
+          }
+        },
+        {
+          "name": "POST Generate Plan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/generate"
+          }
+        },
+        {
+          "name": "POST Approve Plan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/approve"
+          }
+        },
+        {
+          "name": "POST Start Research",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/start"
+          }
+        },
+        {
+          "name": "POST Cancel Run",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/cancel"
+          }
+        },
+        {
+          "name": "GET Status After Cancel",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/status"
+          }
+        }
+      ]
+    }
+  ]
+}

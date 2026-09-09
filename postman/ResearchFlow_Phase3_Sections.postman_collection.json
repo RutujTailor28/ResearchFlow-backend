@@ -1,0 +1,161 @@
+{
+  "info": {
+    "_postman_id": "researchflow-phase3-sections",
+    "name": "ResearchFlow Backend — Phase 3 Sections",
+    "description": "Phase 3 section CRUD + reorder.\n\nApply migrations/003_update_plan_section_statuses.sql first.\nbaseUrl=http://localhost:8000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "runId", "value": "" },
+    { "key": "sectionId", "value": "" },
+    { "key": "sectionId2", "value": "" },
+    { "key": "sectionId3", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Setup Create Run",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const b = pm.response.json();",
+              "if (b.data && b.data.id) pm.collectionVariables.set('runId', b.data.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"topic\": \"Phase 3 section management test topic\",\n  \"depth\": \"standard\",\n  \"audience\": \"technical\",\n  \"tone\": \"professional\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/runs"
+      }
+    },
+    {
+      "name": "POST Create Section 1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const b = pm.response.json();",
+              "if (b.data && b.data.id) pm.collectionVariables.set('sectionId', b.data.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Introduction\",\n  \"description\": \"Overview\",\n  \"sub_questions\": [\"What is the topic?\"]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections"
+      }
+    },
+    {
+      "name": "POST Create Section 2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const b = pm.response.json();",
+              "if (b.data && b.data.id) pm.collectionVariables.set('sectionId2', b.data.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Methods\",\n  \"description\": \"Approaches\",\n  \"sub_questions\": [\"Which methods matter?\"]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections"
+      }
+    },
+    {
+      "name": "POST Create Section 3",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const b = pm.response.json();",
+              "if (b.data && b.data.id) pm.collectionVariables.set('sectionId3', b.data.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Outlook\",\n  \"description\": \"Future\",\n  \"sub_questions\": [\"What next?\"]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections"
+      }
+    },
+    {
+      "name": "GET List Sections",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections"
+      }
+    },
+    {
+      "name": "GET Section by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections/{{sectionId}}"
+      }
+    },
+    {
+      "name": "PUT Update Section",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Introduction Updated\",\n  \"description\": \"Edited description\",\n  \"sub_questions\": [\"Q1?\", \"Q2?\"],\n  \"status\": \"researched\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections/{{sectionId}}"
+      }
+    },
+    {
+      "name": "PUT Reorder Sections",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"section_ids\": [\n    \"{{sectionId3}}\",\n    \"{{sectionId}}\",\n    \"{{sectionId2}}\"\n  ]\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections/reorder"
+      }
+    },
+    {
+      "name": "DELETE Section 2",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/v1/runs/{{runId}}/sections/{{sectionId2}}"
+      }
+    }
+  ]
+}

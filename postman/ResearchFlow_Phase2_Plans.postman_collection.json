@@ -1,0 +1,106 @@
+{
+  "info": {
+    "_postman_id": "researchflow-phase2-plans",
+    "name": "ResearchFlow Backend — Phase 2 Plans",
+    "description": "Phase 2 AI Planning APIs.\n\nRequires:\n1) migrations/002_create_plan_sections.sql applied\n2) OPENROUTER_API_KEY set in backend/.env\n3) backend running on http://localhost:8000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "runId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Setup",
+      "item": [
+        {
+          "name": "GET Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/health"
+          }
+        },
+        {
+          "name": "POST Create Run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data && body.data.id) pm.collectionVariables.set('runId', body.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Future of Artificial Intelligence in Healthcare\",\n  \"depth\": \"standard\",\n  \"audience\": \"technical\",\n  \"tone\": \"professional\",\n  \"target_length\": 3000,\n  \"source_types\": [\"official\", \"research\", \"news\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Plans",
+      "item": [
+        {
+          "name": "POST Generate Plan (AI)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/generate"
+          }
+        },
+        {
+          "name": "GET Plan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan"
+          }
+        },
+        {
+          "name": "PUT Update Plan",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated AI Healthcare Plan\",\n  \"summary\": \"User-edited summary\",\n  \"sections\": [\n    {\n      \"id\": \"section-1\",\n      \"order_index\": 1,\n      \"title\": \"Introduction\",\n      \"description\": \"Edited description\",\n      \"sub_questions\": [\"What is AI in healthcare?\", \"Why does adoption matter?\"],\n      \"status\": \"pending\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan"
+          }
+        },
+        {
+          "name": "POST Improve Plan (AI)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instructions\": \"Make the plan more technical\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/improve"
+          }
+        },
+        {
+          "name": "POST Approve Plan",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/approve"
+          }
+        }
+      ]
+    }
+  ]
+}

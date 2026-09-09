@@ -1,0 +1,321 @@
+{
+  "info": {
+    "_postman_id": "researchflow-full-api",
+    "name": "ResearchFlow Backend — Full API (Phase 1 + 2)",
+    "description": "Import this collection into Postman.\n\nBase URL: http://localhost:8000\n\nBefore testing:\n1. Restart uvicorn after editing backend/.env\n2. Confirm GET Health shows runs_table=true, plan_sections_table=true, openrouter_configured=true\n3. Run requests in numbered order\n\nPOST Create Run auto-saves {{runId}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Health",
+      "item": [
+        {
+          "name": "GET Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('success true', () => pm.expect(b.success).to.eql(true));",
+                  "console.log('runs_table', b.data.supabase.runs_table);",
+                  "console.log('plan_sections_table', b.data.supabase.plan_sections_table);",
+                  "console.log('openrouter_configured', b.data.supabase.openrouter_configured);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Runs (Phase 1)",
+      "item": [
+        {
+          "name": "POST Create Run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('run created', () => {",
+                  "  pm.expect(b.success).to.eql(true);",
+                  "  pm.expect(b.data.id).to.be.ok;",
+                  "  pm.expect(b.data.status).to.eql('plan_pending');",
+                  "  pm.collectionVariables.set('runId', b.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Future of Artificial Intelligence in Healthcare\",\n  \"depth\": \"standard\",\n  \"audience\": \"technical\",\n  \"tone\": \"professional\",\n  \"target_length\": 3000,\n  \"source_types\": [\n    \"official\",\n    \"research\",\n    \"news\"\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs"
+          }
+        },
+        {
+          "name": "GET List Runs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/runs?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "runs"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" },
+                { "key": "status", "value": "plan_pending", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Run by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}"
+          }
+        },
+        {
+          "name": "GET Run Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Plans (Phase 2)",
+      "item": [
+        {
+          "name": "POST Generate Plan (AI)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('AI plan ready', () => {",
+                  "  pm.expect(b.success).to.eql(true);",
+                  "  pm.expect(b.data.run_status).to.eql('plan_ready');",
+                  "  pm.expect(b.data.plan.sections.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/generate",
+            "description": "Calls OpenRouter. May take 30–120s on free models."
+          }
+        },
+        {
+          "name": "GET Plan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan"
+          }
+        },
+        {
+          "name": "PUT Update Plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated AI Healthcare Plan\",\n  \"summary\": \"User-edited research plan summary\",\n  \"sections\": [\n    {\n      \"id\": \"section-1\",\n      \"order_index\": 1,\n      \"title\": \"Introduction\",\n      \"description\": \"Overview of AI in healthcare\",\n      \"sub_questions\": [\n        \"What is AI in healthcare?\",\n        \"Why is adoption increasing?\"\n      ],\n      \"status\": \"pending\"\n    },\n    {\n      \"id\": \"section-2\",\n      \"order_index\": 2,\n      \"title\": \"Clinical Applications\",\n      \"description\": \"Key clinical use cases\",\n      \"sub_questions\": [\n        \"Which specialties benefit most?\",\n        \"What evidence supports deployment?\"\n      ],\n      \"status\": \"pending\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan"
+          }
+        },
+        {
+          "name": "POST Improve Plan (AI)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instructions\": \"Make the plan more technical\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/improve",
+            "description": "Calls OpenRouter. May take 30–120s on free models."
+          }
+        },
+        {
+          "name": "POST Approve Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('approved', () => pm.expect(b.data.status).to.eql('approved'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/plan/approve"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Phase 5 Research & Findings",
+      "item": [
+        {
+          "name": "POST Start Research",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/start"
+          }
+        },
+        {
+          "name": "GET Research Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/status"
+          }
+        },
+        {
+          "name": "GET Research Results",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/results"
+          }
+        },
+        {
+          "name": "POST Retry Research",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/research/retry"
+          }
+        },
+        {
+          "name": "GET List Findings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/findings"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Phase 6 Agents & Events",
+      "item": [
+        {
+          "name": "GET Agents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/agents"
+          }
+        },
+        {
+          "name": "GET Agents Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/agents/status"
+          }
+        },
+        {
+          "name": "GET Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/events?limit=50"
+          }
+        },
+        {
+          "name": "GET Stream SSE",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "text/event-stream" }],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/stream?replay=true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Cleanup (optional)",
+      "item": [
+        {
+          "name": "POST Cancel Run",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/cancel",
+            "description": "Will fail with 409 if run is already approved/completed. Create a fresh run to test cancel."
+          }
+        },
+        {
+          "name": "DELETE Run",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}"
+          }
+        }
+      ]
+    }
+  ]
+}
